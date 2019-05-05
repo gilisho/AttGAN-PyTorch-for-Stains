@@ -7,3 +7,4 @@ img_size = (500, 500)  # size of image
 img_color = 'white'  # background color of image
 
 txt_path = 'assets/alice_in_wonderland.txt'
+spot_path = 'assets/images/black-circle.png'
