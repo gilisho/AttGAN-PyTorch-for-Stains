@@ -7,9 +7,10 @@ from consts import *
 
 #----- helper functions -----
 def hsv2rgb(h,s,v):
-    return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h,s,v))
+    return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
 
-def superimpose_random_spot(target_image):
+
+def superimpose_random_spot(target_image, num_spots):
     spot = Image.open(random.choice(spot_files)).convert("RGBA")
 
     # make the spot randomly sized, while keeping aspect ratio
@@ -62,41 +63,48 @@ def create_dirty_image():
     img.paste(image_with_text, (px, py, px + sx, py + sy))
 
     # save 'clean' image
-    img.save(f'./input_images/input-image-{i}.png')
+    img.save(f'./input_images/input-image-{i}-0.png')
     
     # add spots
-    for _ in range(num_spots[i]):
-        superimpose_random_spot(img)
+    create_dirt_levels(img, i)
 
-    # save dirty picture
-    img.save(f'./input_images/input-image-{i}-dirty.png', format="png")
 
-#----- main -----
+def create_dirt_levels(img, idx):
 
+    for lev in range(num_levels):
+        num_spots = random.normal(mean_spots_per_image + lev*extra_num_spots, 1)
+        for _ in range(int(round(num_spots))):
+            superimpose_random_spot(img, num_spots)
+
+        img.save(f'./input_images/input-image-{idx}-{lev+1}.png', format="png")
+
+
+# ------------main-----
+
+#def main():
 # upload font file paths from assets
-font_files = [] 
+font_files = []
 for r, d, f in os.walk(font_path):       # r=root, d=directories, f=files
     for file in f:
         if file.endswith('.ttf'):
             font_files.append(os.path.join(r, file))
 
 # upload spot file paths from assets
-spot_files = [] 
+spot_files = []
 for r, d, f in os.walk(spot_path):       # r=root, d=directories, f=files
     for file in f:
         if file.endswith(eligible_image_formats):
             spot_files.append(os.path.join(r, file))
 
 # create a normal distribution for the number of spots on images
-num_spots = random.normal(mean_spots_per_image, 1, NUMBER_OF_IMAGES + 1)
-num_spots = [int(round(n)) for n in num_spots]
+#num_spots = random.normal(mean_spots_per_image, 1, NUMBER_OF_IMAGES + 1)
+#num_spots = [int(round(n)) for n in num_spots]
 
 for i in range(NUMBER_OF_IMAGES + 1):
     create_dirty_image()
 
 
-
-
-
+#if __name__ == "__main__":
+#    main()
 
 
