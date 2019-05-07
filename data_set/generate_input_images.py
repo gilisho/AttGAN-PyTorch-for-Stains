@@ -72,11 +72,15 @@ def create_dirty_image():
 def create_dirt_levels(img, idx):
 
     for lev in range(num_levels):
-        num_spots = random.normal(mean_spots_per_image + lev*extra_num_spots, 1)
+        if lev<=1:
+            num_spots = random.normal(mean_spots_per_image + lev*extra_num_spots, 1)
+        if lev>1:
+            num_spots = random.normal(mean_spots_per_image + (lev+1) * extra_num_spots, 1)
+        temp = img.copy()
         for _ in range(int(round(num_spots))):
-            superimpose_random_spot(img, num_spots)
+            superimpose_random_spot(temp, num_spots)
 
-        img.save(f'./input_images/input-image-{idx}-{lev+1}.png', format="png")
+        temp.save(f'./input_images/input-image-{idx}-{lev+1}.png', format="png")
 
 
 # ------------main-----
