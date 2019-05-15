@@ -17,13 +17,13 @@ max_text_lines = 20
 min_fontsize = 15
 max_fontsize = 30
 
-min_spotheight = 5      # in % of the image height
+min_spotheight = 5  # in % of the image height
 max_spotheight = 50
 
-min_spot_opacity = 30   # in %
+min_spot_opacity = 30  # in %
 max_spot_opacity = 70
 
-mean_spots_per_image = 3    # for normal distribution
-extra_num_spots = 10         # num of spots to add to each dirt level
+mean_spots_per_image = 3  # for normal distribution
+extra_num_spots = 10  # num of spots to add to each dirt level
 
 num_levels = 3

@@ -14,7 +14,7 @@ def read_txt_file(filename, minlines, maxlines):
         # take randomly a line and add it to output_text
         for _ in range(num_of_lines_in_output_text):
             line_num = random.randint(0, num_of_lines_in_file + 1)  # line num to read from text
-            if line_num >= num_of_lines_in_file:       # file has ended 
+            if line_num >= num_of_lines_in_file:  # file has ended
                 break
             output_text += lines[line_num]
 
