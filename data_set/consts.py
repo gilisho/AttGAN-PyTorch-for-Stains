@@ -1,6 +1,6 @@
 # CONSTANTS FOR GENERATING INPUT IMAGES
 
-NUMBER_OF_IMAGES = 3  # number of images to generate
+NUMBER_OF_IMAGES = 400  # number of images to generate
 
 img_mode = 'RGB'
 img_size = (500, 500)  # size of image
