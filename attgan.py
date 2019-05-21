@@ -267,6 +267,13 @@ class AttGAN():
     def load(self, path):
         states = torch.load(path, map_location=lambda storage, loc: storage)
         if 'G' in states:
+            model_dict = self.G.state_dict()
+
+            # 1. filter out unnecessary keys
+            states['G'] = {k: v for k, v in states['G'].items() if k in model_dict}
+            # 2. overwrite entries in the existing state dict
+            model_dict.update(states['G'])
+            # 3. load the new state dict
             self.G.load_state_dict(states['G'])
         if 'D' in states:
             self.D.load_state_dict(states['D'])

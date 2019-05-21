@@ -27,8 +27,8 @@ def parse(args=None):
     parser.add_argument('--num_test', dest='num_test', type=int)
     parser.add_argument('--load_epoch', dest='load_epoch', type=str, default='latest')
     parser.add_argument('--custom_img', action='store_true')
-    parser.add_argument('--custom_data', type=str, default='./data/custom')
-    parser.add_argument('--custom_attr', type=str, default='./data/list_attr_custom.txt')
+    parser.add_argument('--custom_data', type=str, default='./data/custom_test')
+    parser.add_argument('--custom_attr', type=str, default='./data/list_attr_custom_test.txt')
     parser.add_argument('--gpu', action='store_true')
     return parser.parse_args(args)
 
@@ -54,7 +54,7 @@ print(args)
 if args.custom_img:
     output_path = join('output', args.experiment_name, 'custom_testing')
     from data import Custom
-    test_dataset = Custom(args.custom_data, args.custom_attr, args.img_size, args.attrs)
+    test_dataset = Custom(args.custom_data, args.custom_attr, args.img_size, 'test', args.attrs)
 else:
     output_path = join('output', args.experiment_name, 'sample_testing')
     if args.data == 'CelebA':

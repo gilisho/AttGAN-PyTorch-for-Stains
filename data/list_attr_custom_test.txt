@@ -1,0 +1,6 @@
+4
+Clean Stain_Level_1 Stain_Level_2 Stain_Level_3
+000071.jpg 1 -1 -1 -1
+000224.jpg -1 -1 -1 1
+001342.jpg -1 1 -1 -1
+002157.jpg -1 -1 1 -1
