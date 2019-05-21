@@ -18,7 +18,7 @@ MAX_DIM = 64 * 16  # 1024
 class Generator(nn.Module):
     def __init__(self, enc_dim=64, enc_layers=5, enc_norm_fn='batchnorm', enc_acti_fn='lrelu',
                  dec_dim=64, dec_layers=5, dec_norm_fn='batchnorm', dec_acti_fn='relu',
-                 n_attrs=13, shortcut_layers=1, inject_layers=0, img_size=128):
+                 n_attrs=4, shortcut_layers=1, inject_layers=0, img_size=128):
         super(Generator, self).__init__()
         self.shortcut_layers = min(shortcut_layers, dec_layers - 1)
         self.inject_layers = min(inject_layers, dec_layers - 1)
@@ -35,7 +35,7 @@ class Generator(nn.Module):
         self.enc_layers = nn.ModuleList(layers)
         
         layers = []
-        n_in = n_in + n_attrs  # 1024 + 13
+        n_in = n_in + n_attrs  # 1024 + 4
         for i in range(dec_layers):
             if i < dec_layers - 1:
                 n_out = min(dec_dim * 2**(dec_layers-i-1), MAX_DIM)
@@ -105,7 +105,7 @@ class Discriminators(nn.Module):
         )
         self.fc_cls = nn.Sequential(
             LinearBlock(1024 * self.f_size * self.f_size, fc_dim, fc_norm_fn, fc_acti_fn),
-            LinearBlock(fc_dim, 13, 'none', 'none')
+            LinearBlock(fc_dim, 4, 'none', 'none')
         )
     
     def forward(self, x):
@@ -308,6 +308,6 @@ if __name__ == '__main__':
     parser.add_argument('--beta2', dest='beta2', type=float, default=0.999)
     parser.add_argument('--gpu', action='store_true')
     args = parser.parse_args()
-    args.n_attrs = 13
+    args.n_attrs = 4
     args.betas = (args.beta1, args.beta2)
     arrgan = AttGAN(args)

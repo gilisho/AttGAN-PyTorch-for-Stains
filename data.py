@@ -14,13 +14,20 @@ from PIL import Image
 
 
 class Custom(data.Dataset):
-    def __init__(self, data_path, attr_path, image_size, selected_attrs):
+    def __init__(self, data_path, attr_path, image_size, mode, selected_attrs):
         self.data_path = data_path
         att_list = open(attr_path, 'r', encoding='utf-8').readlines()[1].split()
         atts = [att_list.index(att) + 1 for att in selected_attrs]
         self.images = np.loadtxt(attr_path, skiprows=2, usecols=[0], dtype=np.str)
         self.labels = np.loadtxt(attr_path, skiprows=2, usecols=atts, dtype=np.int)
-        
+
+        if mode == 'train':
+            self.images = self.images[:800]
+            self.labels = self.labels[:800]
+        if mode == 'valid':
+            self.images = self.images[800:]
+            self.labels = self.labels[800:]
+
         self.tf = transforms.Compose([
             transforms.Resize(image_size),
             transforms.ToTensor(),
@@ -148,6 +155,10 @@ if __name__ == '__main__':
         'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows',
         'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
     ]
+
+    attrs_custom_default = [
+        'Clean', 'Stain_Level_1', 'Stain_Level_2', 'Stain_Level_3'
+    ]
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--attrs', dest='attrs', default=attrs_default, nargs='+', help='attributes to test')
@@ -155,7 +166,7 @@ if __name__ == '__main__':
     parser.add_argument('--attr_path', dest='attr_path', type=str, required=True)
     args = parser.parse_args()
     
-    dataset = CelebA(args.data_path, args.attr_path, 128, 'valid', args.attrs)
+    dataset = Custom(args.data_path, args.attr_path, 128, 'valid', attrs_custom_default)
     dataloader = data.DataLoader(
         dataset, batch_size=64, shuffle=False, drop_last=False
     )
@@ -168,7 +179,7 @@ if __name__ == '__main__':
         break
     del x, y
     
-    dataset = CelebA(args.data_path, args.attr_path, 128, 'valid', args.attrs)
+    dataset = Custom(args.data_path, args.attr_path, 128, 'valid', attrs_custom_default)
     dataloader = data.DataLoader(
         dataset, batch_size=16, shuffle=False, drop_last=False
     )

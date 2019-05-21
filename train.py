@@ -26,13 +26,17 @@ attrs_default = [
     'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
 ]
 
+attrs_custom_default = [
+    'Clean', 'Stain_Level_1', 'Stain_Level_2', 'Stain_Level_3'
+]
+
 def parse(args=None):
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('--attrs', dest='attrs', default=attrs_default, nargs='+', help='attributes to learn')
-    parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ'], default='CelebA')
-    parser.add_argument('--data_path', dest='data_path', type=str, default='data/img_align_celeba')
-    parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_celeba.txt')
+    parser.add_argument('--attrs', dest='attrs', default=attrs_custom_default, nargs='+', help='attributes to learn')
+    parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ', 'Custom'], default='Custom')
+    parser.add_argument('--data_path', dest='data_path', type=str, default='data/custom')
+    parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_custom.txt')
     parser.add_argument('--image_list_path', dest='image_list_path', type=str, default='data/image_list.txt')
     
     parser.add_argument('--img_size', dest='img_size', type=int, default=128)
@@ -101,6 +105,10 @@ if args.data == 'CelebA-HQ':
     from data import CelebA_HQ
     train_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'train', args.attrs)
     valid_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'valid', args.attrs)
+if args.data == 'Custom':
+    from data import Custom
+    train_dataset = Custom(args.data_path, args.attr_path, args.img_size, 'train', attrs_custom_default)
+    valid_dataset = Custom(args.data_path, args.attr_path, args.img_size, 'valid', attrs_custom_default)
 train_dataloader = data.DataLoader(
     train_dataset, batch_size=args.batch_size, num_workers=args.num_workers,
     shuffle=True, drop_last=True

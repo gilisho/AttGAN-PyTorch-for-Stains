@@ -1,0 +1,10 @@
+.idea
+__pycache__
+.DS_Store
+data/DS_Store
+data/img_align_celeba
+data/list_attr_celeba.txt
+data/list_attr_celeba.txt
+data/list_attr_custom_copy.txt
+data/custom_dataset
+output
