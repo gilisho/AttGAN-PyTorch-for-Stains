@@ -11,7 +11,7 @@ def hsv2rgb(h, s, v):
     return tuple(round(i * 255) for i in colorsys.hsv_to_rgb(h, s, v))
 
 
-def superimpose_random_spot(target_image, num_spots):
+def superimpose_random_spot(target_image):
     spot = Image.open(random.choice(spot_files)).convert("RGBA")
 
     # make the spot randomly sized, while keeping aspect ratio
@@ -26,12 +26,12 @@ def superimpose_random_spot(target_image, num_spots):
 
     # apply random transparency to spot
     pixel_data = spot.load()
-    opacity = random.randint(min_spot_opacity, max_spot_opacity + 1)
+    opacity = random.randint(min_spot_opacity, max_spot_opacity + 1) / 100
     if spot.mode == "RGBA":
-        for y in range(spot.size[1]):  # For each row ...
-            for x in range(spot.size[0]):  # For each column ...
+        for y in range(newH):  # For each row ...
+            for x in range(newW):  # For each column ...
                 pixel_data[x, y] = (pixel_data[x, y][0], pixel_data[x, y][1],
-                                    pixel_data[x, y][2], int(pixel_data[x, y][3] * opacity / 100))
+                                    pixel_data[x, y][2], int(pixel_data[x, y][3] * opacity))
 
     x, y = spot.size
     target_image.paste(spot, (randX, randY, randX + x, randY + y), spot)
@@ -65,13 +65,14 @@ def create_dirty_image():
     img.paste(image_with_text, (px, py, px + sx, py + sy))
 
     # save 'clean' image
-    img.save(f'./input_images/input-image-{i}-0.png')
+    img.save(f'./input_images/level0/{image_index}.png', format="png")
 
-    # add spots
-    create_dirt_levels(img, i)
+    create_dirt_levels(img, image_index)
 
 
 def create_dirt_levels(img, idx):
+    print(idx)
+    # add spots and save dirty images
     for lev in range(num_levels):
         if lev <= 1:
             num_spots = random.normal(mean_spots_per_image + lev * extra_num_spots, 1)
@@ -79,9 +80,9 @@ def create_dirt_levels(img, idx):
             num_spots = random.normal(mean_spots_per_image + (lev + 1) * extra_num_spots, 1)
         temp = img.copy()
         for _ in range(int(round(num_spots))):
-            superimpose_random_spot(temp, num_spots)
+            superimpose_random_spot(temp)
 
-        temp.save(f'./input_images/input-image-{idx}-{lev + 1}.png', format="png")
+        temp.save(f'./input_images/level{lev + 1}/{idx}.png', format="png")
 
 
 # ------------main-----
@@ -89,23 +90,23 @@ def create_dirt_levels(img, idx):
 # def main():
 # upload font file paths from assets
 font_files = []
-for r, d, f in os.walk(font_path):  # r=root, d=directories, f=files
-    for file in f:
+for root, directories, files in os.walk(font_path):
+    for file in files:
         if file.endswith('.ttf'):
-            font_files.append(os.path.join(r, file))
+            font_files.append(os.path.join(root, file))
 
 # upload spot file paths from assets
 spot_files = []
-for r, d, f in os.walk(spot_path):  # r=root, d=directories, f=files
-    for file in f:
+for root, directories, files in os.walk(spot_path):
+    for file in files:
         if file.endswith(eligible_image_formats):
-            spot_files.append(os.path.join(r, file))
+            spot_files.append(os.path.join(root, file))
 
 # create a normal distribution for the number of spots on images
 # num_spots = random.normal(mean_spots_per_image, 1, NUMBER_OF_IMAGES + 1)
 # num_spots = [int(round(n)) for n in num_spots]
 
-for i in range(NUMBER_OF_IMAGES + 1):
+for image_index in range(NUMBER_OF_IMAGES):
     create_dirty_image()
 
 # if __name__ == "__main__":
