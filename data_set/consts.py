@@ -1,7 +1,5 @@
 # CONSTANTS FOR GENERATING INPUT IMAGES
 
-NUMBER_OF_IMAGES = 10000  # number of images to generate
-
 img_mode = 'RGB'
 img_size = (128, 128)  # size of image
 img_color = 'white'  # background color of image
@@ -17,13 +15,15 @@ max_text_lines = 15
 min_fontsize = 12
 max_fontsize = 24
 
-min_spotheight = 5  # in % of the image height
-max_spotheight = 50
+base_min_spotheight = 5     # in % of the image height
+base_max_spotheight = 30
 
-min_spot_opacity = 30  # in %
-max_spot_opacity = 70
+base_min_spot_opacity = 30  # in %
+base_max_spot_opacity = 75
 
-mean_spots_per_image = 3  # for normal distribution
-extra_num_spots = 5  # num of spots to add to each dirt level
+base_num_spots = 4          # mean number of spots for the lowest dirt level
+extra_num_spots = 5         # mean number of spots to add to each next dirt level
 
-num_levels = 3
+intensity_levels = 3  
+
+NUMBER_OF_IMAGES = 10 * (intensity_levels+1)  # number of images to generate
