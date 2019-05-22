@@ -7,7 +7,7 @@ img_color = 'white'  # background color of image
 txt_path = 'assets/alice_in_wonderland.txt'
 spot_path = 'assets/spots'
 font_path = 'assets/fonts'
-eligible_image_formats = ('.png', '.webp', '.gif', '.tif', '.tiff')
+eligible_image_formats = ('.jpg', 'jpeg', '.png', '.webp', '.gif', '.tif', '.tiff')
 
 min_text_lines = 4
 max_text_lines = 15
@@ -26,4 +26,4 @@ extra_num_spots = 5         # mean number of spots to add to each next dirt leve
 
 intensity_levels = 3  
 
-NUMBER_OF_IMAGES = 10 * (intensity_levels+1)  # number of images to generate
+NUMBER_OF_IMAGES = 5000 * (intensity_levels+1)  # number of images to generate

@@ -10,6 +10,7 @@ from utils import *
 # ----- global variables -----
 font_files = []
 spot_images = []
+rand_indices = []
 attribute_metadata = ""
 
 
@@ -42,6 +43,8 @@ def superimpose_random_spot(target_image, dirt_level):
 
 
 def create_dirty_images(text_cache, image_index):
+    global attribute_metadata, rand_indices
+
     img = Image.new(img_mode, img_size, img_color)  # create new image object
     text = get_text(text_cache, min_text_lines, max_text_lines)
    
@@ -69,17 +72,18 @@ def create_dirty_images(text_cache, image_index):
     img.paste(image_with_text, (px, py, px + sx, py + sy))
 
     # save 'clean' image
-    img.save(f'./output/{image_index:06}.jpg', format="jpeg")
+    img.save(f'./output/{rand_indices[image_index]:06}.jpg', format="jpeg")
 
-    # write attribute metadata
-    global attribute_metadata
-    attribute_metadata += (f'{image_index:06}.jpg 1 ' + intensity_levels*'-1 ')[:-1] + '\n'
+    # write attribute metadata    
+    attribute_metadata += (f'{rand_indices[image_index]:06}.jpg 1 ' + intensity_levels*'-1 ')[:-1] + '\n'
 
     if image_index%100==0: print(image_index)      # maintenance only
     create_dirt_levels(img, image_index)
 
 
 def create_dirt_levels(img, idx):
+    global attribute_metadata, rand_indices
+
     # add spots and save dirty images
     for lev in range(1, intensity_levels+1):
         temp = img.copy()
@@ -88,15 +92,16 @@ def create_dirt_levels(img, idx):
         for _ in range(int(round(num_spots))):
             superimpose_random_spot(temp, dirt_level=lev)
 
-        temp.save(f'./output/{idx+lev:06}.jpg', format="jpeg")
+        temp.save(f'./output/{rand_indices[idx+lev]:06}.jpg', format="jpeg")
 
         # write attribute metadata
-        global attribute_metadata
-        attribute_metadata += (f'{idx+lev:06}.jpg -1 ' + (lev-1)*'-1 ' + '1 ' + (intensity_levels-lev)*'-1 ')[:-1] + '\n'
+        attribute_metadata += (f'{rand_indices[idx+lev]:06}.jpg -1 ' + (lev-1)*'-1 ' + '1 ' + (intensity_levels-lev)*'-1 ')[:-1] + '\n'
 
 # ----- main -----
 
 def main():
+    global attribute_metadata, rand_indices
+
     # upload font file paths from assets
     for root, _, files in os.walk(font_path):
         for file in files:
@@ -113,11 +118,15 @@ def main():
     with open(txt_path, "r") as text_file:
         text_cache = text_file.readlines()
 
-    # add header for attribute metadata file
-    global attribute_metadata
+    # add header for attribute metadata file    
     attribute_metadata = f'{NUMBER_OF_IMAGES}\nClean Stain_Level_1 Stain_Level_2 Stain_Level_3\n'
 
-    for image_index in range(0, NUMBER_OF_IMAGES, intensity_levels+1):      # +1 for clean image (i.e. no dirt intensity)
+    # create a randomized list of indices for the images     
+    rand_indices = [n for n in range(NUMBER_OF_IMAGES)]
+    random.shuffle(rand_indices)
+
+    # create a randomized list of indices for the images    
+    for image_index in range(0, NUMBER_OF_IMAGES, intensity_levels+1):      # +1 for clean image (i.e. no dirt intensity)         
         create_dirty_images(text_cache, image_index) 
 
     # dump attribute metadata to file 
@@ -126,3 +135,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
