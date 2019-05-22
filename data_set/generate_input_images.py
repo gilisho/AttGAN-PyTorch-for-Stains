@@ -4,6 +4,7 @@ import os
 from numpy import random, mean
 import colorsys
 from consts import *
+import utils
 
 
 # ----- helper functions -----
@@ -65,13 +66,13 @@ def create_dirty_image():
     img.paste(image_with_text, (px, py, px + sx, py + sy))
 
     # save 'clean' image
-    img.save(f'./input_images/level0/{image_index}.png', format="png")
+    img.save(f'./output/{image_numbers[image_index]:06}.jpg', format="jpeg")
+    print(image_index)
 
-    create_dirt_levels(img, image_index)
+    create_dirt_levels(img, image_index + 1)
 
 
 def create_dirt_levels(img, idx):
-    print(idx)
     # add spots and save dirty images
     for lev in range(num_levels):
         if lev <= 1:
@@ -82,7 +83,8 @@ def create_dirt_levels(img, idx):
         for _ in range(int(round(num_spots))):
             superimpose_random_spot(temp)
 
-        temp.save(f'./input_images/level{lev + 1}/{idx}.png', format="png")
+        temp.save(f'./output/{image_numbers[idx]:06}.jpg', format="jpeg")
+        idx += 1
 
 
 # ------------main-----
@@ -106,7 +108,14 @@ for root, directories, files in os.walk(spot_path):
 # num_spots = random.normal(mean_spots_per_image, 1, NUMBER_OF_IMAGES + 1)
 # num_spots = [int(round(n)) for n in num_spots]
 
-for image_index in range(NUMBER_OF_IMAGES):
+attr_file = open("list_attr_custom.txt", "w+")
+attr_file.write(f'{NUMBER_OF_IMAGES * (num_levels + 1)}\nClean Stain_Level_1 Stain_Level_2 Stain_Level_3\n')
+image_numbers = utils.generate_pseudorandom_sequence(0, NUMBER_OF_IMAGES - 1)
+for image_index in range(0, NUMBER_OF_IMAGES, 4):
+    attr_file.write(f'{image_numbers[image_index]:06}.jpg 1 -1 -1 -1\n{image_numbers[image_index+1]:06}.jpg -1 1 -1 -1\n{image_numbers[image_index+2]:06}.jpg -1 -1 1 -1\n{image_numbers[image_index+3]:06}.jpg -1 -1 -1 1\n')
+attr_file.close()
+
+for image_index in range(0, NUMBER_OF_IMAGES, num_levels + 1):
     create_dirty_image()
 
 # if __name__ == "__main__":
