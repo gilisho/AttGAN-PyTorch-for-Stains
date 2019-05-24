@@ -10,14 +10,18 @@ from utils import *
 # ----- global variables -----
 font_files = []
 spot_images = []
+spot_image_types = []             # a list of the spot type of each loaded spot file
+spot_types = set()                # an alphabetically-ordered set of unique spot types used
 rand_indices = []
 attribute_metadata = ""
 
 
 def superimpose_random_spot(target_image, dirt_level):
+    ''' returns: the *type* (string) of the stop chosen '''
       
     spot_idx = random.randint(len(spot_images))
     spot = spot_images[spot_idx].copy()
+    chosen_spot_type = spot_image_types[spot_idx]
 
     # make the spot randomly sized, while keeping aspect ratio
     spotW, spotH = spot.size
@@ -40,6 +44,7 @@ def superimpose_random_spot(target_image, dirt_level):
 
     x, y = spot.size
     target_image.paste(spot, (randX, randY, randX + x, randY + y), spot)
+    return chosen_spot_type
 
 
 def create_dirty_images(text_cache, image_index):
@@ -74,8 +79,8 @@ def create_dirty_images(text_cache, image_index):
     # save 'clean' image
     img.save(f'./output/{rand_indices[image_index]:06}.jpg', format="jpeg")
 
-    # write attribute metadata    
-    attribute_metadata += (f'{rand_indices[image_index]:06}.jpg 1 ' + intensity_levels*'-1 ')[:-1] + '\n'
+    # write attribute metadata for the base ("clean") image
+    attribute_metadata += (f'{rand_indices[image_index]:06}.jpg ') + (len(spot_types)*'-1 ')[:-1] + '\n'
 
     if image_index%100==0: print(image_index)      # maintenance only
     create_dirt_levels(img, image_index)
@@ -89,18 +94,21 @@ def create_dirt_levels(img, idx):
         temp = img.copy()
 
         num_spots = random.normal(base_num_spots + extra_num_spots*(lev-1), 1)
+        added_spots_vector = [0]*len(spot_types)     # to track the types of spots added
         for _ in range(int(round(num_spots))):
-            superimpose_random_spot(temp, dirt_level=lev)
+            added_spot_type = superimpose_random_spot(temp, dirt_level=lev)
+            added_spots_vector[spot_types.index(added_spot_type)] += 1
 
         temp.save(f'./output/{rand_indices[idx+lev]:06}.jpg', format="jpeg")
 
         # write attribute metadata
-        attribute_metadata += (f'{rand_indices[idx+lev]:06}.jpg -1 ' + (lev-1)*'-1 ' + '1 ' + (intensity_levels-lev)*'-1 ')[:-1] + '\n'
+        # in current usage we only care whether a spot type is used (1) or not (-1)
+        attribute_metadata += (f'{rand_indices[idx+lev]:06}.jpg ') + ' '.join([('1' if n>0 else '-1') for n in added_spots_vector]) + '\n'
 
 # ----- main -----
 
 def main():
-    global attribute_metadata, rand_indices
+    global attribute_metadata, rand_indices, spot_image_types, spot_types
 
     # upload font file paths from assets
     for root, _, files in os.walk(font_path):
@@ -108,18 +116,21 @@ def main():
             if file.endswith('.ttf'):
                 font_files.append(os.path.join(root, file))
 
-    # upload spot file paths from assets
+    # upload spot file paths from assets, and parse spot types 
     for root, _, files in os.walk(spot_path):
         for file in files:
             if file.endswith(eligible_image_formats):
+                spot_image_types.append(file.split('-')[0])
                 spot_images.append(Image.open(os.path.join(root, file)).convert("RGBA"))
+    
+    spot_types = sorted(set(spot_image_types))  
 
     # cache lines from the text file which we use for the images
     with open(txt_path, "r") as text_file:
         text_cache = text_file.readlines()
 
     # add header for attribute metadata file    
-    attribute_metadata = f'{NUMBER_OF_IMAGES}\nClean Stain_Level_1 Stain_Level_2 Stain_Level_3\n'
+    attribute_metadata = f'{NUMBER_OF_IMAGES}\n' + ' '.join(spot_types) + '\n'
 
     # create a randomized list of indices for the images     
     rand_indices = [n for n in range(NUMBER_OF_IMAGES)]
