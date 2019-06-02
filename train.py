@@ -143,7 +143,7 @@ it_per_epoch = len(train_dataset) // args.batch_size
 start_epoch = 0
 if args.load_epoch > 0:
     start_epoch = args.load_epoch + 1
-    it = it_per_epoch * args.load_epoch + 1
+    it = it_per_epoch * (args.load_epoch + 1) + 1
 for epoch in range(start_epoch, args.epochs):
     # train with base lr in the first 100 epochs
     # and half the lr in the last 100 epochs
