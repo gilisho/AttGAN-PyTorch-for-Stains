@@ -269,14 +269,36 @@ class AttGAN():
         if 'G' in states:
             model_dict = self.G.state_dict()
 
+            # remove `module.` from key name of states['G']
+            mod_states = {}
+            for key in states['G'].keys():
+                mod_states[key[7:]] = states['G'][key]
+            states['G'].update(mod_states)
+
             # 1. filter out unnecessary keys
-            states['G'] = {k: v for k, v in states['G'].items() if k in model_dict}
+            states['G'] = {k: v for k, v in states['G'].items() if k in model_dict.keys()}
             # 2. overwrite entries in the existing state dict
             model_dict.update(states['G'])
+
             # 3. load the new state dict
             self.G.load_state_dict(states['G'])
         if 'D' in states:
+            model_dict = self.D.state_dict()
+
+            # remove `module.` from key name of states['D']
+            mod_states = {}
+            for key in states['D'].keys():
+                mod_states[key[7:]] = states['D'][key]
+            states['D'].update(mod_states)
+
+            # 1. filter out unnecessary keys
+            states['D'] = {k: v for k, v in states['D'].items() if k in model_dict.keys()}
+            # 2. overwrite entries in the existing state dict
+            model_dict.update(states['D'])
+
+            # 3. load the new state dict
             self.D.load_state_dict(states['D'])
+
         if 'optim_G' in states:
             self.optim_G.load_state_dict(states['optim_G'])
         if 'optim_D' in states:

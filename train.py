@@ -20,6 +20,7 @@ from data import check_attribute_conflict
 from helpers import Progressbar, add_scalar_dict
 from tensorboardX import SummaryWriter
 
+from utils import find_model
 
 attrs_default = [
     'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows',
@@ -81,7 +82,8 @@ def parse(args=None):
     parser.add_argument('--gpu', dest='gpu', action='store_true')
     parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
     parser.add_argument('--experiment_name', dest='experiment_name', default=datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
-    
+    parser.add_argument('--load_epoch', dest='load_epoch', type=int, default=0)
+
     return parser.parse_args(args)
 
 args = parse()
@@ -120,6 +122,8 @@ valid_dataloader = data.DataLoader(
 print('Training images:', len(train_dataset), '/', 'Validating images:', len(valid_dataset))
 
 attgan = AttGAN(args)
+if args.load_epoch > 0:
+    attgan.load(find_model(join('output', args.experiment_name, 'checkpoint')))
 progressbar = Progressbar()
 writer = SummaryWriter(join('output', args.experiment_name, 'summary'))
 
@@ -136,7 +140,11 @@ for i in range(args.n_attrs):
 
 it = 0
 it_per_epoch = len(train_dataset) // args.batch_size
-for epoch in range(args.epochs):
+start_epoch = 0
+if args.load_epoch > 0:
+    start_epoch = args.load_epoch + 1
+    it = it_per_epoch * args.load_epoch + 1
+for epoch in range(start_epoch, args.epochs):
     # train with base lr in the first 100 epochs
     # and half the lr in the last 100 epochs
     lr = args.lr_base / (10 ** (epoch // 100))
@@ -177,12 +185,12 @@ for epoch in range(args.epochs):
             # To save storage space, I only checkpoint the weights of G.
             # If you'd like to keep weights of G, D, optim_G, optim_D,
             # please use save() instead of saveG().
-            attgan.saveG(os.path.join(
-                'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
-            ))
-            # attgan.save(os.path.join(
+            # attgan.saveG(os.path.join(
             #     'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
             # ))
+            attgan.save(os.path.join(
+                'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
+            ))
         if (it+1) % args.sample_interval == 0:
             attgan.eval()
             with torch.no_grad():
