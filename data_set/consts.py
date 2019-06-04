@@ -21,9 +21,9 @@ base_max_spotheight = 30
 base_min_spot_opacity = 30  # in %
 base_max_spot_opacity = 75
 
-base_num_spots = 4          # mean number of spots for the lowest dirt level
+base_num_spots = 3          # mean number of spots for the lowest dirt level
 extra_num_spots = 5         # mean number of spots to add to each next dirt level
 
 intensity_levels = 3  
 
-NUMBER_OF_IMAGES = 5000 * (intensity_levels+1)  # number of images to generate
+NUMBER_OF_IMAGES = 1000 * (intensity_levels+1)  # number of images to generate
