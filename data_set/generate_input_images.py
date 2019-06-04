@@ -77,7 +77,7 @@ def create_dirty_images(text_cache, image_index):
     img.paste(image_with_text, (px, py, px + sx, py + sy))
 
     # save 'clean' image
-    img.save(f'./output/{rand_indices[image_index]:06}.jpg', format="jpeg")
+    img.save(f'./output/custom/{rand_indices[image_index]:06}.jpg', format="jpeg")
 
     # write attribute metadata for the base ("clean") image
     attribute_metadata += (f'{rand_indices[image_index]:06}.jpg ') + (len(spot_types)*'-1 ')[:-1] + '\n'
@@ -99,7 +99,7 @@ def create_dirt_levels(img, idx):
             added_spot_type = superimpose_random_spot(temp, dirt_level=lev)
             added_spots_vector[spot_types.index(added_spot_type)] += 1
 
-        temp.save(f'./output/{rand_indices[idx+lev]:06}.jpg', format="jpeg")
+        temp.save(f'./output/custom/{rand_indices[idx+lev]:06}.jpg', format="jpeg")
 
         # write attribute metadata
         # in current usage we only care whether a spot type is used (1) or not (-1)
@@ -141,7 +141,7 @@ def main():
         create_dirty_images(text_cache, image_index) 
 
     # dump attribute metadata to file 
-    with open("list_attr_custom.txt", "w+") as attr_file:
+    with open("output/list_attr_custom.txt", "w+") as attr_file:
         attr_file.write(attribute_metadata)
 
 if __name__ == "__main__":
