@@ -16,12 +16,18 @@ rand_indices = []
 attribute_metadata = ""
 
 
-def superimpose_random_spot(target_image, dirt_level):
+def superimpose_random_spot(target_image, dirt_level, desired_spot_type):
     ''' returns: the *type* (string) of the stop chosen '''
       
     spot_idx = random.randint(len(spot_images))
     spot = spot_images[spot_idx].copy()
     chosen_spot_type = spot_image_types[spot_idx]
+    if desired_spot_type != 'multi':
+        while chosen_spot_type != desired_spot_type: # choose spot type until the desired type is chosen
+            spot_idx = random.randint(len(spot_images))
+            spot = spot_images[spot_idx].copy()
+            chosen_spot_type = spot_image_types[spot_idx]
+
 
     # make the spot randomly sized, while keeping aspect ratio
     spotW, spotH = spot.size
@@ -90,13 +96,17 @@ def create_dirt_levels(img, idx):
     global attribute_metadata, rand_indices
 
     # add spots and save dirty images
+    types_of_spots = ['multi', 'black', 'coffee']
+    random.shuffle(types_of_spots)
+
     for lev in range(1, intensity_levels+1):
         temp = img.copy()
 
         num_spots = random.normal(base_num_spots + extra_num_spots*(lev-1), 1)
+        desired_spots_type = types_of_spots[lev-1]   # assuming there are 3 levels
         added_spots_vector = [0]*len(spot_types)     # to track the types of spots added
         for _ in range(int(round(num_spots))):
-            added_spot_type = superimpose_random_spot(temp, dirt_level=lev)
+            added_spot_type = superimpose_random_spot(temp, dirt_level=lev, desired_spot_type=desired_spots_type)
             added_spots_vector[spot_types.index(added_spot_type)] += 1
 
         temp.save(f'./output/custom/{rand_indices[idx+lev]:06}.jpg', format="jpeg")

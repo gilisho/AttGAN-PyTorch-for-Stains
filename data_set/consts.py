@@ -19,7 +19,7 @@ base_min_spotheight = 5     # in % of the image height
 base_max_spotheight = 30
 
 base_min_spot_opacity = 30  # in %
-base_max_spot_opacity = 75
+base_max_spot_opacity = 70
 
 base_num_spots = 4          # mean number of spots for the lowest dirt level
 extra_num_spots = 5         # mean number of spots to add to each next dirt level
