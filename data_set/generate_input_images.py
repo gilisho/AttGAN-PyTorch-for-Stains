@@ -1,7 +1,9 @@
-import os  # base python
+import os
 
-from numpy import random, mean  # site-packages
+from numpy import random
 from PIL import Image, ImageDraw, ImageFont  # PIL is actually Pillow-SIMD (requires apt install zlib1g-dev libjpeg-dev)
+from tqdm import tqdm
+import argparse
 
 import consts as defaults
 import utils
@@ -158,9 +160,6 @@ class ImageCreator():
         target_image.paste(spot, (randX, randY, randX + x, randY + y), spot)
 
     def generate_dirty_images(self, img, image_index):
-        if image_index % 100 == 0:
-            print(image_index)  # maintenance only
-
         # add spots and save dirty images
         for lev in range(1, self.intensity_levels + 1):
             temp = img.copy()
@@ -194,8 +193,6 @@ def check_img_num(value):
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--img_num', dest='img_num', type=check_img_num, required=True, help='# of images to generate')
     parser.add_argument('--img_mode', dest='img_mode', type=str, default=defaults.img_mode)
@@ -238,8 +235,8 @@ if __name__ == "__main__":
 
     img_creator = ImageCreator(arguments)
 
-    for img_index in range(0, arguments.img_num,
-                           arguments.intensity_levels + 1):  # +1 for clean image (i.e. no dirt intensity)
+    for img_index in tqdm(range(0, arguments.img_num,
+                                arguments.intensity_levels + 1)):  # +1 for clean image (i.e. no dirt intensity)
         clean_image = img_creator.generate_clean_image(img_index)
         img_creator.generate_dirty_images(clean_image, img_index)
 
