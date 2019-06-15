@@ -38,3 +38,12 @@ Clean Stain_Level_1 Stain_Level_2 Stain_Level_3
 
 
 After that, the output is saved in the `data` folder.
+
+## Usage
+
+#### To create a new dataset containing 12000 images
+
+```bash
+python3 generate_input_images.py \
+--img_num 12000
+```
