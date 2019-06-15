@@ -94,7 +94,9 @@ class ImageCreator():
             os.remove(file.path)
 
     def __clean_output_attr_file(self):
-        os.remove(f'output/{self.output_attr_filename}')
+        file_path = f'output/{self.output_attr_filename}'
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
     def generate_clean_image(self, image_index):
         img_text = self.selector.select_text_for_image()
