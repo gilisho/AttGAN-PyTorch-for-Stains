@@ -5,7 +5,6 @@ from numpy import random
 from PIL import Image, ImageDraw, ImageFont  # PIL is actually Pillow-SIMD (requires apt install zlib1g-dev libjpeg-dev)
 from tqdm import tqdm
 import argparse
-import skimage as skim                       # need to install the library scikit-image
 
 import consts as defaults
 import utils
