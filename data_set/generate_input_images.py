@@ -1,9 +1,11 @@
 import os
 
+import numpy as np
 from numpy import random
 from PIL import Image, ImageDraw, ImageFont  # PIL is actually Pillow-SIMD (requires apt install zlib1g-dev libjpeg-dev)
 from tqdm import tqdm
 import argparse
+import skimage as skim                       # need to install the library scikit-image
 
 import consts as defaults
 import utils
@@ -72,6 +74,7 @@ class ImageCreator():
         self.img_background_color = args.img_background_color
         self.img_mode = args.img_mode
         self.img_size = args.img_size
+        self.random_spot_num = args.random_spot_num
         self.spot_min_opacity = args.spot_min_opacity
         self.spot_max_opacity = args.spot_max_opacity
         self.spot_base_min_height = args.spot_base_min_height
@@ -82,6 +85,7 @@ class ImageCreator():
         self.selector = Selector(args.font_path, args.spot_path, args.txt_path, args.eligible_image_formats,
                                  args.min_text_lines, args.max_text_lines,
                                  args.min_font_size, args.max_font_size)
+
         self.attribute_metadata = f'{args.img_num}\nClean Stain_Level_1 Stain_Level_2 Stain_Level_3\n'  # add header for attribute metadata file
         self.output_folder_name = "custom_test" if (args.for_testing in args) else "custom"
         self.output_attr_filename = "list_attr_custom_test.txt" if args.for_testing else "list_attr_custom.txt"
@@ -123,8 +127,12 @@ class ImageCreator():
         sx, sy = image_with_text.size
         img.paste(image_with_text, (px, py, px + sx, py + sy))
 
+        temp = img.copy()
+        # add noise
+        if defaults.gaussian_noise:
+            temp = self.add_gaussian_noise(temp)
         # save 'clean' image
-        img.save(f'./output/{self.output_folder_name}/{image_index:06}.jpg', format="jpeg")
+        temp.save(f'./output/{self.output_folder_name}/{image_index:06}.jpg', format="jpeg")
 
         # write attribute metadata
         self.attribute_metadata += (f'{image_index:06}.jpg 1 ' + self.intensity_levels * '-1 ')[
@@ -163,10 +171,17 @@ class ImageCreator():
         # add spots and save dirty images
         for lev in range(1, self.intensity_levels + 1):
             temp = img.copy()
+            if self.random_spot_num:
+                num_spots = random.normal(self.spots_base_num + self.spots_extra_num * (lev - 1), 1)
+            else:
+                num_spots = self.spots_base_num + self.spots_extra_num * (lev - 1)
 
-            num_spots = random.normal(self.spots_base_num + self.spots_extra_num * (lev - 1), 1)
             for _ in range(int(round(num_spots))):
                 self.superimpose_random_spot(temp, dirt_level=lev)
+
+            # add noise
+            if defaults.gaussian_noise:
+                temp = self.add_gaussian_noise(temp)
 
             temp.save(f'./output/{self.output_folder_name}/{image_index + lev:06}.jpg', format="jpeg")
 
@@ -177,6 +192,14 @@ class ImageCreator():
     def dump_attr_metadata_to_file(self):
         with open(f'output/{self.output_attr_filename}', "w+") as attr_file:
             attr_file.write(self.attribute_metadata)
+
+    @staticmethod
+    def add_gaussian_noise(img):
+        img2arr = np.asarray(img)
+        img2arr = img2arr + random.normal(0, 0.4, img2arr.shape)
+        img = Image.fromarray(np.uint8(img2arr))
+        # img.show()
+        return img
 
 
 def check_img_num(value):
@@ -206,14 +229,15 @@ if __name__ == "__main__":
     parser.add_argument('--max_font_size', dest='max_font_size', type=int, default=defaults.max_font_size)
 
     parser.add_argument('--spot_min_opacity', dest='spot_min_opacity', type=int, default=defaults.spot_min_opacity,
-                        help='% of min opacity of added spots')
+                        help='%% of min opacity of added spots')
     parser.add_argument('--spot_max_opacity', dest='spot_max_opacity', type=int, default=defaults.spot_max_opacity,
-                        help='% of max opacity of added spots')
+                        help='%% of max opacity of added spots')
     parser.add_argument('--spot_base_min_height', dest='spot_base_min_height', type=int,
                         default=defaults.spot_base_min_height,
-                        help='% of the min height the added spots will take image added spots')
+                        help='%% of the min height the added spots will take image added spots')
     parser.add_argument('--spot_base_max_height', dest='spot_base_max_height', type=int,
-                        default=defaults.spot_base_max_height, help='% of the max height of added spots')
+                        default=defaults.spot_base_max_height, help='%% of the max height of added spots')
+
     parser.add_argument('--spots_base_num', dest='spots_base_num', type=int, default=defaults.spots_base_num,
                         help='number of spots for the lowest dirt level')
     parser.add_argument('--spots_extra_num', dest='spots_extra_num', type=int, default=defaults.spots_extra_num,
@@ -230,6 +254,14 @@ if __name__ == "__main__":
     parser.add_argument('--by_stain_levels', dest='by_stain_levels', action='store_true')
     parser.add_argument('--for_testing', dest='for_testing', default=False, action='store_true',
                         help='indicates whether dataset is for testing')
+
+    parser.add_argument('--random_spot_num', dest='random_spot_num', default=defaults.random_spot_num,
+                        action='store_true',
+                        help='indicates whether the spot number is normally distributed or constant for each level')
+
+    parser.add_argument('--gaussian_noise', dest='gaussian_noise', default=defaults.gaussian_noise,
+                        action='store_true',
+                        help='indicates whether to add gaussian noise to all images')
 
     arguments = parser.parse_args()
 

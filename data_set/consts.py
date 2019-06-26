@@ -22,6 +22,8 @@ spot_min_opacity = 30  # in %
 spot_max_opacity = 75
 
 spots_base_num = 4          # mean number of spots for the lowest dirt level
-spots_extra_num = 5         # mean number of spots to add to each next dirt level
+spots_extra_num = 8         # mean number of spots to add to each next dirt level
 
-intensity_levels = 3
+random_spot_num = False
+gaussian_noise = True
+intensity_levels = 2
