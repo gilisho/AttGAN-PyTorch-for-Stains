@@ -61,7 +61,7 @@ assert len(args.test_ints) == len(args.test_atts), 'the lengths of test_ints and
 if args.custom_img:
     output_path = join('output', args.experiment_name, 'custom_testing_multi_' + str(args.test_atts))
     from data import Custom
-    test_dataset = Custom(args.custom_data, args.custom_attr, args.img_size, args.attrs)
+    test_dataset = Custom(args.custom_data, args.custom_attr, args.img_size, 'test', args.attrs)
 else:
     output_path = join('output', args.experiment_name, 'sample_testing_multi_' + str(args.test_atts))
     if args.data == 'CelebA':
