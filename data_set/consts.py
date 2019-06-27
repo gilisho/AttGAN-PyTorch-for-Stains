@@ -25,5 +25,4 @@ spots_base_num = 4          # mean number of spots for the lowest dirt level
 spots_extra_num = 8         # mean number of spots to add to each next dirt level
 
 random_spot_num = False
-gaussian_noise = True
 intensity_levels = 2

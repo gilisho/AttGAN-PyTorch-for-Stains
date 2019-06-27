@@ -88,6 +88,7 @@ class ImageCreator():
         self.attribute_metadata = f'{args.img_num}\nClean Stain_Level_1 Stain_Level_2 Stain_Level_3\n'  # add header for attribute metadata file
         self.output_folder_name = "custom_test" if (args.for_testing in args) else "custom"
         self.output_attr_filename = "list_attr_custom_test.txt" if args.for_testing else "list_attr_custom.txt"
+        self.gaussian_noise = args.gaussian_noise
         self.__clean_output()
 
     def __clean_output(self):
@@ -128,7 +129,7 @@ class ImageCreator():
 
         temp = img.copy()
         # add noise
-        if defaults.gaussian_noise:
+        if self.gaussian_noise:
             temp = self.add_gaussian_noise(temp)
         # save 'clean' image
         temp.save(f'./output/{self.output_folder_name}/{image_index:06}.jpg', format="jpeg")
@@ -175,12 +176,12 @@ class ImageCreator():
             else:
                 num_spots = self.spots_base_num + self.spots_extra_num * (lev - 1)
 
+            # add gaussian noise
+            if self.gaussian_noise:
+                temp = self.add_gaussian_noise(temp)
+
             for _ in range(int(round(num_spots))):
                 self.superimpose_random_spot(temp, dirt_level=lev)
-
-            # add noise
-            if defaults.gaussian_noise:
-                temp = self.add_gaussian_noise(temp)
 
             temp.save(f'./output/{self.output_folder_name}/{image_index + lev:06}.jpg', format="jpeg")
 
@@ -258,8 +259,7 @@ if __name__ == "__main__":
                         action='store_true',
                         help='indicates whether the spot number is normally distributed or constant for each level')
 
-    parser.add_argument('--gaussian_noise', dest='gaussian_noise', default=defaults.gaussian_noise,
-                        action='store_true',
+    parser.add_argument('--gaussian_noise', dest='gaussian_noise', action='store_true',
                         help='indicates whether to add gaussian noise to all images')
 
     arguments = parser.parse_args()
