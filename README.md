@@ -130,6 +130,19 @@ python test_multi.py \
 --gpu
 ```
 
+In our dataset, you need to create a folder in Bylevels-AttGAN/data/custom test.
+Example:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 \
+python3 test_multi.py --experiment_name 128_shortcut1_inject1_none_16000_bytype \
+--test_atts Clean  Stain_Level_1 \
+--test_ints -1 1 \
+--gpu \
+--custom_img
+
+```
+
 #### To test with attribute intensity control
 
 ![Test Slide](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing_slide.jpg)
