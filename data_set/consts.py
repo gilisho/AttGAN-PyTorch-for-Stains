@@ -26,3 +26,4 @@ spots_extra_num = 8         # mean number of spots to add to each next dirt leve
 
 random_spot_num = False
 intensity_levels = 2
+spot_types = ['black', 'coffee']

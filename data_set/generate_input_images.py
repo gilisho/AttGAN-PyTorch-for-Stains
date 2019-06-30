@@ -12,7 +12,8 @@ import utils
 
 class Selector():
     def __init__(self, font_path, spot_path, txt_path, eligible_image_formats, min_text_lines, max_text_lines,
-                 min_font_size, max_font_size):
+                 min_font_size, max_font_size, spot_types, by_spot_types):
+        self.spot_images_types = []
         self.font_files = self.__upload_font_files_from_path(font_path)
         self.spot_images = self.__upload_spot_files_from_path(spot_path, eligible_image_formats)
         self.text_cache = self.__upload_txt_file_from_path(
@@ -21,6 +22,10 @@ class Selector():
         self.max_text_lines = max_text_lines
         self.min_font_size = min_font_size
         self.max_font_size = max_font_size
+        self.spot_types = spot_types.copy()
+        self.spot_types.append('multi')
+        if by_spot_types:
+            utils.assert_that_each_spot_type_has_an_image(self.spot_images_types, spot_types)
 
     @staticmethod
     def __upload_font_files_from_path(font_path):
@@ -31,12 +36,12 @@ class Selector():
                     font_files.append(os.path.join(root, file))
         return font_files
 
-    @staticmethod
-    def __upload_spot_files_from_path(spot_path, eligible_image_formats):
+    def __upload_spot_files_from_path(self, spot_path, eligible_image_formats):
         spot_images = []
         for root, _, files in os.walk(spot_path):
             for file in files:
                 if file.endswith(eligible_image_formats):
+                    self.spot_images_types.append(file.split('-')[0])
                     spot_images.append(Image.open(os.path.join(root, file)).convert("RGBA"))
         return spot_images
 
@@ -66,6 +71,22 @@ class Selector():
         spot = self.spot_images[spot_idx].copy()
         return spot
 
+    def select_spot_for_image_by_type(self, desired_spot_type):
+        spot_idx = random.randint(len(self.spot_images))
+        spot = self.spot_images[spot_idx].copy()
+        chosen_spot_type = self.spot_images_types[spot_idx]
+        if desired_spot_type != 'multi':
+            while chosen_spot_type != desired_spot_type:  # choose spot type until the desired type is chosen
+                spot_idx = random.randint(len(self.spot_images))
+                spot = self.spot_images[spot_idx].copy()
+                chosen_spot_type = self.spot_images_types[spot_idx]
+        return spot, chosen_spot_type
+
+    def get_spot_types_order(self):
+        shuffled = sorted(self.spot_types, key=lambda k: random.random())
+        random.shuffle(shuffled)
+        return shuffled
+
 
 class ImageCreator():
     def __init__(self, args):
@@ -83,15 +104,30 @@ class ImageCreator():
         self.intensity_levels = args.intensity_levels
         self.selector = Selector(args.font_path, args.spot_path, args.txt_path, args.eligible_image_formats,
                                  args.min_text_lines, args.max_text_lines,
-                                 args.min_font_size, args.max_font_size)
+                                 args.min_font_size, args.max_font_size, args.spot_types, args.by_spot_types)
+        self.by_spot_types = args.by_spot_types
+        self.spot_types = args.spot_types
 
-        self.attribute_metadata = f'{args.img_num}\nClean Stain_Level_1 Stain_Level_2 Stain_Level_3\n'  # add header for attribute metadata file
-        self.output_folder_name = "custom_test" if (args.for_testing in args) else "custom"
+        self.attribute_metadata = self.__get_attributes_metadata_header()
+        self.output_folder_name = "custom_test" if args.for_testing else "custom"
         self.output_attr_filename = "list_attr_custom_test.txt" if args.for_testing else "list_attr_custom.txt"
         self.gaussian_noise = args.gaussian_noise
         self.__clean_output()
 
+    def __get_attributes_metadata_header(self):
+        ''' Adds header for attribute metadata file '''
+        attr_metadata_header = f'{self.img_num}\n'
+        if self.by_spot_types:
+            attr_metadata_header += ' '.join(self.spot_types) + '\n'
+        else:
+            attr_metadata_header += 'Clean'
+            for i in range(1, self.intensity_levels + 1):
+                attr_metadata_header += f' Stain_Level_{i}'
+            attr_metadata_header += '\n'
+        return attr_metadata_header
+
     def __clean_output(self):
+        ''' Cleans the output folders before creating the dataset '''
         self.__clean_output_folder()
         self.__clean_output_attr_file()
 
@@ -135,13 +171,19 @@ class ImageCreator():
         temp.save(f'./output/{self.output_folder_name}/{image_index:06}.jpg', format="jpeg")
 
         # write attribute metadata
-        self.attribute_metadata += (f'{image_index:06}.jpg 1 ' + self.intensity_levels * '-1 ')[
-                                   :-1] + '\n'
+        if self.by_spot_types:
+            self.attribute_metadata += f'{image_index:06}.jpg ' + (len(self.spot_types) * '-1 ')[:-1] + '\n'
+        else:
+            self.attribute_metadata += (f'{image_index:06}.jpg 1 ' + self.intensity_levels * '-1 ')[
+                                       :-1] + '\n'
 
         return img
 
-    def superimpose_random_spot(self, target_image, dirt_level):
-        spot = self.selector.select_spot_for_image()
+    def superimpose_random_spot(self, target_image, dirt_level, desired_spot_type=''):
+        if self.by_spot_types:
+            spot, chosen_spot_type = self.selector.select_spot_for_image_by_type(desired_spot_type)
+        else:
+            spot = self.selector.select_spot_for_image()
 
         # make the spot randomly sized, while keeping aspect ratio
         spotW, spotH = spot.size
@@ -166,9 +208,11 @@ class ImageCreator():
 
         x, y = spot.size
         target_image.paste(spot, (randX, randY, randX + x, randY + y), spot)
+        return chosen_spot_type if self.by_spot_types else None
 
     def generate_dirty_images(self, img, image_index):
         # add spots and save dirty images
+        spot_types_including_multi = self.selector.get_spot_types_order()
         for lev in range(1, self.intensity_levels + 1):
             temp = img.copy()
             if self.random_spot_num:
@@ -180,14 +224,24 @@ class ImageCreator():
             if self.gaussian_noise:
                 temp = self.add_gaussian_noise(temp)
 
-            for _ in range(int(round(num_spots))):
-                self.superimpose_random_spot(temp, dirt_level=lev)
+            if self.by_spot_types:
+                desired_spot_type = spot_types_including_multi[(lev - 1) % len(spot_types_including_multi)]
+                added_spots_vector = [0] * len(self.spot_types)
+                for _ in range(int(round(num_spots))):
+                    added_spot_type = self.superimpose_random_spot(temp, dirt_level=lev,
+                                                                   desired_spot_type=desired_spot_type)
+                    added_spots_vector[self.spot_types.index(added_spot_type)] += 1
+                self.attribute_metadata += f'{image_index + lev:06}.jpg ' + ' '.join(
+                    [('1' if n > 0 else '-1') for n in added_spots_vector]) + '\n'
+
+            else:
+                for _ in range(int(round(num_spots))):
+                    self.superimpose_random_spot(temp, dirt_level=lev)
+                # write attribute metadata
+                self.attribute_metadata += (f'{image_index + lev:06}.jpg -1 ' + (lev - 1) * '-1 ' + '1 ' + (
+                        self.intensity_levels - lev) * '-1 ')[:-1] + '\n'
 
             temp.save(f'./output/{self.output_folder_name}/{image_index + lev:06}.jpg', format="jpeg")
-
-            # write attribute metadata
-            self.attribute_metadata += (f'{image_index + lev:06}.jpg -1 ' + (lev - 1) * '-1 ' + '1 ' + (
-                    self.intensity_levels - lev) * '-1 ')[:-1] + '\n'
 
     def dump_attr_metadata_to_file(self):
         with open(f'output/{self.output_attr_filename}', "w+") as attr_file:
@@ -198,26 +252,12 @@ class ImageCreator():
         img2arr = np.asarray(img)
         img2arr = img2arr + random.normal(0, 0.4, img2arr.shape)
         img = Image.fromarray(np.uint8(img2arr))
-        # img.show()
         return img
-
-
-def check_img_num(value):
-    '''
-    check whether number of images to generate divides in 4 (the intensity level)
-    :param value: the arg for img_num to pass
-    :return: the value inserted by user, if value is ok. else, an error is thrown.
-    '''
-    ivalue = int(value)
-    if ivalue % 4 != 0:
-        raise argparse.ArgumentTypeError(
-            "Make sure img_num divides in 4. %s is an invalid images number to generate." % value)
-    return ivalue
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--img_num', dest='img_num', type=check_img_num, required=True, help='# of images to generate')
+    parser.add_argument('--img_num', dest='img_num', type=utils.assert_img_num, required=True, help='# of images to generate')
     parser.add_argument('--img_mode', dest='img_mode', type=str, default=defaults.img_mode)
     parser.add_argument('--img_size', dest='img_size', type=tuple, default=defaults.img_size)
     parser.add_argument('--img_background_color', dest='img_background_color', type=str,
@@ -251,7 +291,9 @@ if __name__ == "__main__":
     parser.add_argument('--img_formats', dest='eligible_image_formats', nargs='+',
                         default=defaults.eligible_image_formats)
 
-    parser.add_argument('--by_stain_levels', dest='by_stain_levels', action='store_true')
+    parser.add_argument('--by_spot_types', dest='by_spot_types', action='store_true',
+                        help='indicates whether the attributes are set by spot type or by intensity level of dirtiness')
+    parser.add_argument('--spot_types', dest='spot_types', nargs='+', default=defaults.spot_types)
     parser.add_argument('--for_testing', dest='for_testing', default=False, action='store_true',
                         help='indicates whether dataset is for testing')
 
