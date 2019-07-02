@@ -211,8 +211,53 @@ class ImageCreator():
         return chosen_spot_type if self.by_spot_types else None
 
     def generate_dirty_images(self, img, image_index):
-        # add spots and save dirty images
+        '''
+        Adds spots and save dirty images.
+        :param img: clean image to add spots to
+        :param image_index: index of the clean image
+        '''
+        if self.by_spot_types:
+            self.generate_dirty_images_by_type(img, image_index)
+        else:
+            self.generate_dirty_images_by_intensity_level(img, image_index)
+
+    def generate_dirty_images_by_type(self, img, image_index):
+        '''
+        Adds spots and save dirty images - by types dataset.
+        In this function, all dirty output images are on the same dirtiness level.
+        :param img: clean image to add spots to
+        :param image_index: index of the clean image
+        '''
         spot_types_including_multi = self.selector.get_spot_types_order()
+
+        for i in range(len(spot_types_including_multi)):
+            desired_spot_type = spot_types_including_multi[i]
+            temp = img.copy()
+            added_spots_vector = [0] * len(self.spot_types)
+
+            # add gaussian noise
+            if self.gaussian_noise:
+                temp = self.add_gaussian_noise(temp)
+
+            for _ in range(defaults.num_spots_by_types):
+                added_spot_type = self.superimpose_random_spot(temp, dirt_level=defaults.dirt_level_by_types,
+                                                               desired_spot_type=desired_spot_type)
+                added_spots_vector[self.spot_types.index(added_spot_type)] += 1
+
+            # write attribute metadata
+            self.attribute_metadata += f'{image_index + (i + 1):06}.jpg ' + ' '.join(
+                [('1' if n > 0 else '-1') for n in added_spots_vector]) + '\n'
+
+            temp.save(f'./output/{self.output_folder_name}/{image_index + (i + 1):06}.jpg', format="jpeg")
+
+    def generate_dirty_images_by_intensity_level(self, img, image_index):
+        '''
+        Adds spots and save dirty images - by intensity level dataset.
+        In this function, we pick a random number of spots to add from a normal distribution, depending on the wanted
+        intensity level.
+        :param img: clean image to add spots to
+        :param image_index: index of the clean image
+        '''
         for lev in range(1, self.intensity_levels + 1):
             temp = img.copy()
             if self.random_spot_num:
@@ -224,31 +269,28 @@ class ImageCreator():
             if self.gaussian_noise:
                 temp = self.add_gaussian_noise(temp)
 
-            if self.by_spot_types:
-                desired_spot_type = spot_types_including_multi[(lev - 1) % len(spot_types_including_multi)]
-                added_spots_vector = [0] * len(self.spot_types)
-                for _ in range(int(round(num_spots))):
-                    added_spot_type = self.superimpose_random_spot(temp, dirt_level=lev,
-                                                                   desired_spot_type=desired_spot_type)
-                    added_spots_vector[self.spot_types.index(added_spot_type)] += 1
-                self.attribute_metadata += f'{image_index + lev:06}.jpg ' + ' '.join(
-                    [('1' if n > 0 else '-1') for n in added_spots_vector]) + '\n'
+            for _ in range(int(round(num_spots))):
+                self.superimpose_random_spot(temp, dirt_level=lev)
 
-            else:
-                for _ in range(int(round(num_spots))):
-                    self.superimpose_random_spot(temp, dirt_level=lev)
-                # write attribute metadata
-                self.attribute_metadata += (f'{image_index + lev:06}.jpg -1 ' + (lev - 1) * '-1 ' + '1 ' + (
-                        self.intensity_levels - lev) * '-1 ')[:-1] + '\n'
+            # write attribute metadata
+            self.attribute_metadata += (f'{image_index + lev:06}.jpg -1 ' + (lev - 1) * '-1 ' + '1 ' + (
+                    self.intensity_levels - lev) * '-1 ')[:-1] + '\n'
 
             temp.save(f'./output/{self.output_folder_name}/{image_index + lev:06}.jpg', format="jpeg")
 
     def dump_attr_metadata_to_file(self):
+        ''' Creates a new file in output folder and dumps to it the attribute metadata '''
         with open(f'output/{self.output_attr_filename}', "w+") as attr_file:
             attr_file.write(self.attribute_metadata)
+        attr_file.close()
 
     @staticmethod
     def add_gaussian_noise(img):
+        '''
+        Adds gaussian noise to the image.
+        :param img: image to add gaussian noise to.
+        :return: the input image after adding gaussian noise to it.
+        '''
         img2arr = np.asarray(img)
         img2arr = img2arr + random.normal(0, 0.4, img2arr.shape)
         img = Image.fromarray(np.uint8(img2arr))
@@ -257,7 +299,8 @@ class ImageCreator():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--img_num', dest='img_num', type=utils.assert_img_num, required=True, help='# of images to generate')
+    parser.add_argument('--img_num', dest='img_num', type=utils.assert_img_num, required=True,
+                        help='# of images to generate')
     parser.add_argument('--img_mode', dest='img_mode', type=str, default=defaults.img_mode)
     parser.add_argument('--img_size', dest='img_size', type=tuple, default=defaults.img_size)
     parser.add_argument('--img_background_color', dest='img_background_color', type=str,
@@ -308,8 +351,11 @@ if __name__ == "__main__":
 
     img_creator = ImageCreator(arguments)
 
-    for img_index in tqdm(range(0, arguments.img_num,
-                                arguments.intensity_levels + 1)):  # +1 for clean image (i.e. no dirt intensity)
+    img_index_step = len(
+        arguments.spot_types) + 1 if arguments.by_spot_types else arguments.intensity_levels  # +1 for 'multi' spot type
+    img_index_step += 1  # +1 for clean image type
+
+    for img_index in tqdm(range(0, arguments.img_num, img_index_step)):
         clean_image = img_creator.generate_clean_image(img_index)
         img_creator.generate_dirty_images(clean_image, img_index)
 
