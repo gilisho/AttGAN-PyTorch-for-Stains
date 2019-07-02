@@ -41,9 +41,19 @@ After that, the output is saved in the `data` folder.
 
 ## Usage
 
-#### To create a new dataset containing 12000 images
+#### To create a new dataset containing 12000 images with two intensity (dirtiness of image) levels
 
 ```bash
 python3 generate_input_images.py \
 --img_num 12000
+--intensity_levels 2
+```
+
+#### To create a new dataset containing 12000 images, classified by stain types, with gaussian noise in all images
+
+```bash
+python3 generate_input_images.py \
+--img_num 12000
+--by_spot_types
+--gaussian_noise
 ```
