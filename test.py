@@ -30,6 +30,7 @@ def parse(args=None):
     parser.add_argument('--custom_data', type=str, default='./data/custom_test')
     parser.add_argument('--custom_attr', type=str, default='./data/list_attr_custom_test.txt')
     parser.add_argument('--gpu', action='store_true')
+    parser.add_argument('--by_levels', action='store_true')
     return parser.parse_args(args)
 
 args_ = parse()
@@ -41,6 +42,7 @@ with open(join('output', args_.experiment_name, 'setting.txt'), 'r') as f:
 args.test_int = args_.test_int
 args.num_test = args_.num_test
 args.gpu = args_.gpu
+args.by_levels = args_.by_levels
 args.load_epoch = args_.load_epoch
 args.custom_img = args_.custom_img
 args.custom_data = args_.custom_data
@@ -79,20 +81,31 @@ attgan.load(find_model(join('output', args.experiment_name, 'checkpoint'), args.
 progressbar = Progressbar()
 
 attgan.eval()
+
+
 for idx, (img_a, att_a) in enumerate(test_dataloader):
     if args.num_test is not None and idx == args.num_test:
         break
-    
+
     img_a = img_a.cuda() if args.gpu else img_a
     att_a = att_a.cuda() if args.gpu else att_a
     att_a = att_a.type(torch.float)
-    
+
     att_b_list = [att_a]
-    for i in range(args.n_attrs):
-        tmp = att_a.clone()
-        tmp[:, i] = 1 - tmp[:, i]
-        tmp = check_attribute_conflict(tmp, args.attrs[i], args.attrs)
-        att_b_list.append(tmp)
+    if args.by_levels:
+        for i in range(args.n_attrs):
+            tmp = att_a.clone()
+            for j in range(args.n_attrs):
+                tmp[:, j] = -1
+            tmp[:, i] = 1
+            tmp = check_attribute_conflict(tmp, args.attrs[i], args.attrs)
+            att_b_list.append(tmp)
+    else:
+        for i in range(args.n_attrs):
+            tmp = att_a.clone()
+            tmp[:, i] = 1 - tmp[:, i]
+            tmp = check_attribute_conflict(tmp, args.attrs[i], args.attrs)
+            att_b_list.append(tmp)  # a list of lists of attributes (probably).
 
     with torch.no_grad():
         samples = [img_a]
