@@ -14,8 +14,7 @@ class Selector():
     def __init__(self, font_path, spot_path, txt_path, eligible_image_formats, min_text_lines, max_text_lines,
                  min_font_size, max_font_size, spot_types, by_spot_types):
         self.spot_images_types = []
-        self.font_files = self.__upload_font_files_from_path(font_path)
-        self.spot_images = self.__upload_spot_files_from_path(spot_path, eligible_image_formats)
+        self.font_files = self.__upload_font_files_from_path(font_path)        
         self.text_cache = self.__upload_txt_file_from_path(
             txt_path)  # text_cache is a list containing lines of text read beforehand from a text file
         self.min_text_lines = min_text_lines
@@ -26,6 +25,7 @@ class Selector():
         self.spot_types.append('multi')
         if by_spot_types:
             utils.assert_that_each_spot_type_has_an_image(self.spot_images_types, spot_types)
+        self.spot_images = self.__upload_spot_files_from_path(spot_path, eligible_image_formats, spot_types)
 
     @staticmethod
     def __upload_font_files_from_path(font_path):
@@ -36,12 +36,13 @@ class Selector():
                     font_files.append(os.path.join(root, file))
         return font_files
 
-    def __upload_spot_files_from_path(self, spot_path, eligible_image_formats):
+    def __upload_spot_files_from_path(self, spot_path, eligible_image_formats, spot_types):
         spot_images = []
         for root, _, files in os.walk(spot_path):
             for file in files:
-                if file.endswith(eligible_image_formats):
-                    self.spot_images_types.append(file.split('-')[0])
+                file_spot_type = file.split('-')[0]
+                if file.endswith(eligible_image_formats) and file_spot_type in spot_types:
+                    self.spot_images_types.append(file_spot_type)
                     spot_images.append(Image.open(os.path.join(root, file)).convert("RGBA"))
         return spot_images
 
@@ -99,6 +100,7 @@ class ImageCreator():
         self.spot_max_opacity = args.spot_max_opacity
         self.spot_base_min_height = args.spot_base_min_height
         self.spot_base_max_height = args.spot_base_max_height
+        self.spot_grow_factor = args.spot_grow_factor
         self.spots_base_num = args.spots_base_num
         self.spots_extra_num = args.spots_extra_num
         self.intensity_levels = args.intensity_levels
@@ -180,6 +182,7 @@ class ImageCreator():
         return img
 
     def superimpose_random_spot(self, target_image, dirt_level, desired_spot_type=''):
+
         if self.by_spot_types:
             spot, chosen_spot_type = self.selector.select_spot_for_image_by_type(desired_spot_type)
         else:
@@ -188,8 +191,7 @@ class ImageCreator():
         # make the spot randomly sized, while keeping aspect ratio
         spotW, spotH = spot.size
         img_width, img_height = target_image.size
-        newH = int(img_height * random.randint(self.spot_base_min_height * dirt_level,
-                                               self.spot_base_max_height + 10 * (dirt_level - 1) + 1) / 100)
+        newH = int(img_height * (random.randint(self.spot_base_min_height, self.spot_base_max_height+1)+self.spot_grow_factor*(dirt_level-1))/100)
         newW = int(newH * spotW / spotH)
         spot = spot.resize((newW, newH), Image.ANTIALIAS)
 
@@ -199,7 +201,7 @@ class ImageCreator():
 
         # apply random transparency to spot
         pixel_data = spot.load()
-        opacity = random.randint(self.spot_min_opacity + 10 * (dirt_level - 1), self.spot_max_opacity + 1) / 100
+        opacity = random.randint(self.spot_min_opacity, self.spot_max_opacity + 1) / 100
         if spot.mode == "RGBA":
             for y in range(newH):  # For each row ...
                 for x in range(newW):  # For each column ...
@@ -258,12 +260,13 @@ class ImageCreator():
         :param img: clean image to add spots to
         :param image_index: index of the clean image
         '''
+
         for lev in range(1, self.intensity_levels + 1):
             temp = img.copy()
             if self.random_spot_num:
                 num_spots = random.normal(self.spots_base_num + self.spots_extra_num * (lev - 1), 1)
             else:
-                num_spots = self.spots_base_num + self.spots_extra_num * (lev - 1)
+                num_spots = self.spots_base_num + self.spots_extra_num * (lev - 1)            
 
             # add gaussian noise
             if self.gaussian_noise:
@@ -292,7 +295,8 @@ class ImageCreator():
         :return: the input image after adding gaussian noise to it.
         '''
         img2arr = np.asarray(img)
-        img2arr = img2arr + random.normal(0, 0.4, img2arr.shape)
+        gauss_grayscale = [[[y]*3 for y in x] for x in random.normal(0, 0.4, img2arr.shape[:2])]
+        img2arr = img2arr + gauss_grayscale
         img = Image.fromarray(np.uint8(img2arr))
         return img
 
@@ -316,10 +320,11 @@ if __name__ == "__main__":
     parser.add_argument('--spot_max_opacity', dest='spot_max_opacity', type=int, default=defaults.spot_max_opacity,
                         help='%% of max opacity of added spots')
     parser.add_argument('--spot_base_min_height', dest='spot_base_min_height', type=int,
-                        default=defaults.spot_base_min_height,
-                        help='%% of the min height the added spots will take image added spots')
+                        default=defaults.spot_base_min_height, help='min %% of the image height an added spot will take')
     parser.add_argument('--spot_base_max_height', dest='spot_base_max_height', type=int,
-                        default=defaults.spot_base_max_height, help='%% of the max height of added spots')
+                        default=defaults.spot_base_max_height, help='max %% of the image height an added spot will take')
+    parser.add_argument('--spot_grow_factor', dest='spot_grow_factor', type=int,
+                        default=defaults.spot_grow_factor, help='additional %% of the image height spot take, per dirtiness level')
 
     parser.add_argument('--spots_base_num', dest='spots_base_num', type=int, default=defaults.spots_base_num,
                         help='number of spots for the lowest dirt level')
