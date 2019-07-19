@@ -14,7 +14,7 @@ class Selector():
     def __init__(self, font_path, spot_path, txt_path, eligible_image_formats, min_text_lines, max_text_lines,
                  min_font_size, max_font_size, spot_types, by_spot_types):
         self.spot_images_types = []
-        self.font_files = self.__upload_font_files_from_path(font_path)        
+        self.font_files = self.__upload_font_files_from_path(font_path)
         self.text_cache = self.__upload_txt_file_from_path(
             txt_path)  # text_cache is a list containing lines of text read beforehand from a text file
         self.min_text_lines = min_text_lines
@@ -260,15 +260,14 @@ class ImageCreator():
         :param img: clean image to add spots to
         :param image_index: index of the clean image
         '''
-
         for lev in range(1, self.intensity_levels + 1):
             temp = img.copy()
             if self.random_spot_num:
                 num_spots = random.normal(self.spots_base_num + self.spots_extra_num * (lev - 1), 1)
             else:
-                num_spots = self.spots_base_num + self.spots_extra_num * (lev - 1)            
+                num_spots = self.spots_base_num + self.spots_extra_num * (lev - 1)
 
-            # add gaussian noise
+                # add gaussian noise
             if self.gaussian_noise:
                 temp = self.add_gaussian_noise(temp)
 
@@ -295,7 +294,7 @@ class ImageCreator():
         :return: the input image after adding gaussian noise to it.
         '''
         img2arr = np.asarray(img)
-        gauss_grayscale = [[[y]*3 for y in x] for x in random.normal(0, 0.4, img2arr.shape[:2])]
+        gauss_grayscale = [[[y] * 3 for y in x] for x in random.normal(0, 0.4, img2arr.shape[:2])]
         img2arr = img2arr + gauss_grayscale
         img = Image.fromarray(np.uint8(img2arr))
         return img
@@ -320,11 +319,14 @@ if __name__ == "__main__":
     parser.add_argument('--spot_max_opacity', dest='spot_max_opacity', type=int, default=defaults.spot_max_opacity,
                         help='%% of max opacity of added spots')
     parser.add_argument('--spot_base_min_height', dest='spot_base_min_height', type=int,
-                        default=defaults.spot_base_min_height, help='min %% of the image height an added spot will take')
+                        default=defaults.spot_base_min_height,
+                        help='min %% of the image height an added spot will take')
     parser.add_argument('--spot_base_max_height', dest='spot_base_max_height', type=int,
-                        default=defaults.spot_base_max_height, help='max %% of the image height an added spot will take')
+                        default=defaults.spot_base_max_height,
+                        help='max %% of the image height an added spot will take')
     parser.add_argument('--spot_grow_factor', dest='spot_grow_factor', type=int,
-                        default=defaults.spot_grow_factor, help='additional %% of the image height spot take, per dirtiness level')
+                        default=defaults.spot_grow_factor,
+                        help='additional %% of the image height spot take, per dirtiness level')
 
     parser.add_argument('--spots_base_num', dest='spots_base_num', type=int, default=defaults.spots_base_num,
                         help='number of spots for the lowest dirt level')
