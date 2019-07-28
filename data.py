@@ -19,6 +19,7 @@ class Custom(data.Dataset):
         att_list = open(attr_path, 'r', encoding='utf-8').readlines()[1].split()
         atts = [att_list.index(att) + 1 for att in selected_attrs]
         self.images = np.loadtxt(attr_path, skiprows=2, usecols=[0], dtype=np.str)
+        # self.indices = [int(os.path.splitext(name)[0]) for name in self.images]
         self.labels = np.loadtxt(attr_path, skiprows=2, usecols=atts, dtype=np.int)
 
         if mode == 'train':

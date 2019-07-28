@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 from nn import LinearBlock, Conv2dBlock, ConvTranspose2dBlock
 from torchsummary import summary
+import os
 
 
 # This architecture is for images of 128x128
@@ -155,20 +156,38 @@ class AttGAN():
         
         self.optim_G = optim.Adam(self.G.parameters(), lr=args.lr, betas=args.betas)
         self.optim_D = optim.Adam(self.D.parameters(), lr=args.lr, betas=args.betas)
-    
+
+    @staticmethod
+    def is_clean(att_b):
+        if att_b[0] != 1:
+            return False
+
+        for i in range(1, len(att_b)):
+            if att_b[i] != -1:
+                return False
+
+        return True
+
+    @staticmethod
+    def get_gt(img_a, img_name):
+        if img_name is not None:
+            gt_num = (int(os.path.splitext(img_a)[0]) / 4) * 4
+            gt_name = str(gt_num) + os.path.splitext(img_a)[1]
+        return gt_name
+
     def set_lr(self, lr):
         for g in self.optim_G.param_groups:
             g['lr'] = lr
         for g in self.optim_D.param_groups:
             g['lr'] = lr
     
-    def trainG(self, img_a, att_a, att_a_, att_b, att_b_):
+    def trainG(self, img_a, att_a, att_a_, att_b, att_b_, img_name=None, using_gt=False):
         for p in self.D.parameters():
             p.requires_grad = False
         
         zs_a = self.G(img_a, mode='enc')
-        img_fake = self.G(zs_a, att_b_, mode='dec')
-        img_recon = self.G(zs_a, att_a_, mode='dec')
+        img_fake = self.G(zs_a, att_b_, mode='dec') # decoded zs_a using att_b_ attributes
+        img_recon = self.G(zs_a, att_a_, mode='dec') # decoded zs_a using att_a_ attributes (reconstruction)
         d_fake, dc_fake = self.D(img_fake)
         
         if self.mode == 'wgan':
@@ -178,19 +197,29 @@ class AttGAN():
         if self.mode == 'dcgan':  # sigmoid_cross_entropy
             gf_loss = F.binary_cross_entropy_with_logits(d_fake, torch.ones_like(d_fake))
         gc_loss = F.binary_cross_entropy_with_logits(dc_fake, att_b)
-        gr_loss = F.l1_loss(img_recon, img_a)
+        gr_loss = F.l1_loss(img_recon, img_a) # reconstruction loss
+
+        # todo add a loss for ground truth gt_loss
+        if AttGAN.is_clean(att_b) and using_gt:
+            img_ground_truth = AttGAN.get_gt(img_a, img_name)
+            gt_loss = F.l1_loss(img_ground_truth, img_fake)
+
         g_loss = gf_loss + self.lambda_2 * gc_loss + self.lambda_1 * gr_loss
-        
+
+        if gt_loss is not None:
+            g_loss = g_loss + + self.lambda_1*gt_loss
         self.optim_G.zero_grad()
         g_loss.backward()
         self.optim_G.step()
         
         errG = {
             'g_loss': g_loss.item(), 'gf_loss': gf_loss.item(),
-            'gc_loss': gc_loss.item(), 'gr_loss': gr_loss.item()
+            'gc_loss': gc_loss.item(), 'gr_loss': gr_loss.item(),
+            'gt_loss': gt_loss.item()
         }
         return errG
-    
+
+
     def trainD(self, img_a, att_a, att_a_, att_b, att_b_):
         for p in self.D.parameters():
             p.requires_grad = True

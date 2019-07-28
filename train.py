@@ -31,6 +31,7 @@ attrs_custom_default = [
     'Clean', 'Stain_Level_1', 'Stain_Level_2', 'Stain_Level_3'
 ]
 
+
 def parse(args=None):
     parser = argparse.ArgumentParser()
     
@@ -83,6 +84,7 @@ def parse(args=None):
     parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
     parser.add_argument('--experiment_name', dest='experiment_name', default=datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
     parser.add_argument('--load_epoch', dest='load_epoch', type=int, default=0)
+    parser.add_argument('--ground_truth_loss', dest='ground_truth_loss', action='store_true')
 
     return parser.parse_args(args)
 
@@ -134,7 +136,7 @@ fixed_att_a = fixed_att_a.type(torch.float)
 sample_att_b_list = [fixed_att_a]
 for i in range(args.n_attrs):
     tmp = fixed_att_a.clone()
-    tmp[:, i] = 1 - tmp[:, i]
+    tmp[:, i] = 1 - tmp[:, i]  # flipping the 0s and 1s of coloumn i
     tmp = check_attribute_conflict(tmp, args.attrs[i], args.attrs)
     sample_att_b_list.append(tmp)
 
@@ -152,7 +154,7 @@ for epoch in range(start_epoch, args.epochs):
     writer.add_scalar('LR/learning_rate', lr, it+1)
     for img_a, att_a in progressbar(train_dataloader):
         attgan.train()
-        
+        img_name = img_a  # int(os.path.splitext(img_a)[0])
         img_a = img_a.cuda() if args.gpu else img_a
         att_a = att_a.cuda() if args.gpu else att_a
         idx = torch.randperm(len(att_a))
@@ -177,7 +179,7 @@ for epoch in range(start_epoch, args.epochs):
             errD = attgan.trainD(img_a, att_a, att_a_, att_b, att_b_)
             add_scalar_dict(writer, errD, it+1, 'D')
         else:
-            errG = attgan.trainG(img_a, att_a, att_a_, att_b, att_b_)
+            errG = attgan.trainG(img_a, att_a, att_a_, att_b, att_b_, img_name, args.ground_truth_loss)
             add_scalar_dict(writer, errG, it+1, 'G')
             progressbar.say(epoch=epoch, iter=it+1, d_loss=errD['d_loss'], g_loss=errG['g_loss'])
         
