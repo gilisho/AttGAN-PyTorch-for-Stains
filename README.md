@@ -1,7 +1,7 @@
 # AttGAN-PyTorch for Stains
 Workshop in Machine Learning Applications for Computer Graphics, Tel-Aviv University, 2019.
 
-# Authors
+## Authors
 
 * **Chen Barnoy**
 * **Gili Shohat**
