@@ -3,3 +3,12 @@
 __pycache__
 data_set/output
 .vscode
+data/DS_Store
+data/img_align_celeba
+data/list_attr_celeba.txt
+data/list_attr_celeba.txt
+data/list_attr_custom_copy.txt
+data/custom_dataset
+data/
+data/custom
+output
