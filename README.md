@@ -10,10 +10,10 @@ Workshop in Machine Learning Applications for Computer Graphics, Tel-Aviv Univer
 ## Description
 Based on a [PyTorch implementation](https://github.com/elvisyjlin/AttGAN-PyTorch) of AttGAN - [Arbitrary Facial Attribute Editing: Only Change What You Want](https://arxiv.org/abs/1711.10678).
 
-![Teaser](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/teaser.jpg)
+![Teaser](https://github.com/gilisho/GAN-project/blob/master/pics/teaser.jpg)
 Test on the CelebA validating set
 
-![Custom](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/custom_testing.png)
+![Custom](https://github.com/gilisho/GAN-project/blob/master/pics/custom_testing.png)
 Test on our custom set
 
 ## Requirements
@@ -89,7 +89,7 @@ tensorboard \
 
 #### To test with single attribute editing
 
-![Test](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/sample_testing.jpg)
+![Test](https://github.com/gilisho/GAN-project/blob/master/pics/sample_testing.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -101,7 +101,7 @@ python test.py \
 
 #### To test with multiple attributes editing
 
-![Test Multi](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/sample_testing_multi.jpg)
+![Test Multi](https://github.com/gilisho/GAN-project/blob/master/pics/sample_testing_multi.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -126,7 +126,7 @@ python3 test_multi.py --experiment_name 128_shortcut1_inject1_none_16000_bytype 
 
 #### To test with attribute intensity control
 
-![Test Slide](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/sample_testing_slide.jpg)
+![Test Slide](https://github.com/gilisho/GAN-project/blob/master/pics/sample_testing_slide.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
