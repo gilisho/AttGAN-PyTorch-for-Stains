@@ -13,7 +13,7 @@ Based on a [PyTorch implementation](https://github.com/elvisyjlin/AttGAN-PyTorch
 ![Teaser](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/teaser.jpg)
 Test on the CelebA validating set
 
-![Custom](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/custom_testing.jpg)
+![Custom](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/custom_testing.png)
 Test on our custom set
 
 ## Requirements
@@ -89,7 +89,7 @@ tensorboard \
 
 #### To test with single attribute editing
 
-![Test](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing.jpg)
+![Test](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/sample_testing.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -101,7 +101,7 @@ python test.py \
 
 #### To test with multiple attributes editing
 
-![Test Multi](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing_multi.jpg)
+![Test Multi](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/sample_testing_multi.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
