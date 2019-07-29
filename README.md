@@ -1,44 +1,20 @@
-# GAN-project
-Workshop in Machine Learning Applications for Computer Graphics
+# AttGAN-PyTorch for Stains
+Workshop in Machine Learning Applications for Computer Graphics, Tel-Aviv University, 2019.
 
-## Authors
+# Authors
 
 * **Chen Barnoy**
 * **Gili Shohat**
 * **Michael Glukhman**
 
-# AttGAN-PyTorch for Stains
-# Dataset
-The dataset is created by us, using Pillow library for Python 3.
-Images are in size 500x500px.
+## Description
+Based on a [PyTorch implementation](https://github.com/elvisyjlin/AttGAN-PyTorch) of AttGAN - [Arbitrary Facial Attribute Editing: Only Change What You Want](https://arxiv.org/abs/1711.10678).
 
-The `assets` folder contains all the data files required to create the dataset images:
-* Alice in Wonderland text file, `assets/alice_in_wonderland.txt` - used in order to generate sentences in English that will be put in the images.
-* Images found on the internet of transparent spots or stains - located in `assets/spots` folder.
-
-## Input Images
-We create the input images by taking a random sentence from the .txt file and putting it in a random position of the image. Located on `input_images` folder.
-
-## Output Images
-We take an input image from `input_images` folder, and add to it a random image of spot/stain taken from the `assets/spots` folder.
-
-We randomize some parameters:
- * Position of the added spot/stain
- * Angle of the image
-
-After that, the output is saved.
-A PyTorch implementation of AttGAN - [Arbitrary Facial Attribute Editing: Only Change What You Want](https://arxiv.org/abs/1711.10678)
-
-![Teaser](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/teaser.jpg)
+![Teaser](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/teaser.jpg)
 Test on the CelebA validating set
 
-![Custom](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/custom_images.jpg)
-Test on my custom set
-
-Inverting 13 attributes respectively. From left to right: _Input, Reconstruction, Bald, Bangs, Black_Hair, Blond_Hair, Brown_Hair, Bushy_Eyebrows, Eyeglasses, Male, Mouth_Slightly_Open, Mustache, No_Beard, Pale_Skin, Young_
-
-The original TensorFlow version can be found [here](https://github.com/LynnHo/AttGAN-Tensorflow).
-
+![Custom](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/custom_testing.jpg)
+Test on our custom set
 
 ## Requirements
 
@@ -57,15 +33,12 @@ pip3 install --upgrade torch==0.4.0
 ```
 
 * Dataset
-  * [CelebA](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) dataset
-    * [Images](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADSNUu0bseoCKuxuI5ZeTl1a/Img?dl=0&preview=img_align_celeba.zip) should be placed in `./data/img_align_celeba/*.jpg`
-    * [Attribute labels](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAA8YmAHNNU6BEfWMPMfM6r9a/Anno?dl=0&preview=list_attr_celeba.txt) should be placed in `./data/list_attr_celeba.txt`
-  * [HD-CelebA](https://github.com/LynnHo/HD-CelebA-Cropper) (optional)
-    * Please see [here](https://github.com/LynnHo/HD-CelebA-Cropper).
-  * [CelebA-HQ](https://github.com/tkarras/progressive_growing_of_gans) dataset (optional)
-    * Please see [here](https://github.com/willylulu/celeba-hq-modified).
-    * _Images_ should be placed in `./data/celeba-hq/celeba-*/*.jpg`
-    * _Image list_ should be placed in `./data/image_list.txt`
+  * Generated dataset by stain types
+    * [Images](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADSNUu0bseoCKuxuI5ZeTl1a/Img?dl=0&preview=img_align_celeba.zip) should be placed in `./data/custom/*.jpg`
+    * [Attribute labels](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAA8YmAHNNU6BEfWMPMfM6r9a/Anno?dl=0&preview=list_attr_celeba.txt) should be placed in `./data/list_attr_custom.txt`
+  * Generated dataset, by image dirtiness level
+    * [Images](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADSNUu0bseoCKuxuI5ZeTl1a/Img?dl=0&preview=img_align_celeba.zip) should be placed in `./data/custom/*.jpg`
+    * [Attribute labels](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAA8YmAHNNU6BEfWMPMfM6r9a/Anno?dl=0&preview=list_attr_celeba.txt) should be placed in `./data/list_attr_custom.txt`  
 * [Pretrained models](https://goo.gl/mQkqNo): download the models you need and unzip the files to `./output/` as below,
   ```text
   output
@@ -139,8 +112,7 @@ python test_multi.py \
 --gpu
 ```
 
-In our dataset, you need to create a folder in Bylevels-AttGAN/data/custom test.
-Example:
+Example for our case (turning off clean attribute and turning on level 1 of image dirtiness:
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -154,13 +126,13 @@ python3 test_multi.py --experiment_name 128_shortcut1_inject1_none_16000_bytype 
 
 #### To test with attribute intensity control
 
-![Test Slide](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing_slide.jpg)
+![Test Slide](https://github.com/gilisho/AttGAN-PyTorch/blob/master/pics/sample_testing_slide.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
 python test_slide.py \
 --experiment_name 128_shortcut1_inject1_none \
---test_att Male \
+--test_att black \
 --test_int_min -1.0 \
 --test_int_max 1.0 \
 --n_slide 10 \
@@ -179,4 +151,3 @@ python test.py \
 ```
 
 Your custom images are supposed to be in `./data/custom` and you also need an attribute list of the images `./data/list_attr_custom.txt`. Please crop and resize them into square images in advance.
->>>>>>> master
