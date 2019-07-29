@@ -33,12 +33,10 @@ pip3 install --upgrade torch==0.4.0
 ```
 
 * Dataset
-  * Generated dataset by stain types
-    * [Images](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADSNUu0bseoCKuxuI5ZeTl1a/Img?dl=0&preview=img_align_celeba.zip) should be placed in `./data/custom/*.jpg`
-    * [Attribute labels](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAA8YmAHNNU6BEfWMPMfM6r9a/Anno?dl=0&preview=list_attr_celeba.txt) should be placed in `./data/list_attr_custom.txt`
-  * Generated dataset, by image dirtiness level
-    * [Images](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AADSNUu0bseoCKuxuI5ZeTl1a/Img?dl=0&preview=img_align_celeba.zip) should be placed in `./data/custom/*.jpg`
-    * [Attribute labels](https://www.dropbox.com/sh/8oqt9vytwxb3s4r/AAA8YmAHNNU6BEfWMPMfM6r9a/Anno?dl=0&preview=list_attr_celeba.txt) should be placed in `./data/list_attr_custom.txt`  
+  * [Generated datasets (by stain types/by image dirtiness level](https://drive.google.com/drive/folders/1zEdaw-aJ4m5Wi2dUVro8tJcFwV94FGKG?usp=sharing)
+    * Images should be placed in `./data/custom/*.jpg`
+    * Attribute labels should be placed in `./data/list_attr_custom.txt`
+  
 * [Pretrained models](https://goo.gl/mQkqNo): download the models you need and unzip the files to `./output/` as below,
   ```text
   output
