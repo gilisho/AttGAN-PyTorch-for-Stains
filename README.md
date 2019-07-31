@@ -32,23 +32,11 @@ If you'd like to train with __multiple GPUs__, please install PyTorch __v0.4.0__
 pip3 install --upgrade torch==0.4.0
 ```
 
-* Dataset
-  * [Generated datasets (by stain types/by image dirtiness level](https://drive.google.com/drive/folders/1zEdaw-aJ4m5Wi2dUVro8tJcFwV94FGKG?usp=sharing)
+* [Generated datasets (by stain types/by image dirtiness level](https://drive.google.com/drive/folders/1zEdaw-aJ4m5Wi2dUVro8tJcFwV94FGKG?usp=sharing)
     * Images should be placed in `./data/custom/*.jpg`
     * Attribute labels should be placed in `./data/list_attr_custom.txt`
   
-* [Pretrained models](https://goo.gl/mQkqNo): download the models you need and unzip the files to `./output/` as below,
-  ```text
-  output
-  ├── 128_shortcut1_inject0_none
-  ├── 128_shortcut1_inject1_none
-  ├── 256_shortcut1_inject0_none
-  ├── 256_shortcut1_inject1_none
-  ├── 256_shortcut1_inject0_none_hq
-  ├── 256_shortcut1_inject1_none_hq
-  ├── 384_shortcut1_inject0_none_hq
-  └── 384_shortcut1_inject1_none_hq
-  ```
+* [Weights](https://drive.google.com/drive/folders/1zEdaw-aJ4m5Wi2dUVro8tJcFwV94FGKG?usp=sharing)
 
 ## Usage
 
